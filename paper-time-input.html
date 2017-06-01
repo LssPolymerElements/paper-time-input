@@ -28,114 +28,119 @@ Custom property | Description | Default
 <dom-module id="paper-time-input">
   <template>
     <style>
-      :host {
+       :host {
         display: block;
-        @apply(--paper-font-common-base);
+        position: relative;
+        @apply --paper-font-common-base;
       }
 
-      paper-input{
-        width: 30px;
+      paper-input {
+        @apply --layout-flex-3;
+        min-width: 30px;
         text-align: center;
         --paper-input-container-underline: {
           border-color: var(--paper-time-input-underline-color, #ddd);
         }
         --paper-input-container-underline-focus: {
-          border-color: var(--paper-time-input-underline-focus-color, #2196F3);
-        };
+          border-color: var(--paper-time-input-underline-focus-color, var(--primary-color));
+        }
+        ;
         --paper-input-container-input: {
           /* Damn you firefox
           * Needed to hide spin num in firefox
           * http://stackoverflow.com/questions/3790935/can-i-hide-the-html5-number-input-s-spin-box
           */
           -moz-appearance: textfield;
-        };
+        }
+        ;
         --paper-input-container-input-webkit-spinner: {
           -webkit-appearance: none;
           margin: 0;
           display: none;
-        };
+        }
+        ;
       }
 
-      paper-dropdown-menu{
-        width: 55px;
+      paper-dropdown-menu {
+        @apply --layout-flex-2;
+        min-width: 55px;
         /* Force ripple to use the whole container */
         --paper-dropdown-menu-ripple: {
           top: 0 !important;
           bottom: 0px !important;
           color: var(--paper-time-input-dropdown-ripple-color, #2196F3);
-        };
+        }
+        ;
         --paper-input-container-input: {
           text-align: center;
-          @apply(--paper-font-button);
+          @apply --paper-font-button;
           padding-left: 5px;
-        };
+        }
+        ;
         --paper-input-container-underline: {
           border-color: transparent;
         }
         --paper-input-container-underline-focus: {
           border-color: transparent;
-        };
+        }
+        ;
       }
-      paper-item{
+
+      paper-item {
         cursor: pointer;
         text-align: center;
         font-size: 14px;
       }
-      paper-listbox{
+
+      paper-listbox {
         padding: 0;
       }
 
-      label{
-        @apply(--paper-font-caption);
-      }
-      .time-input-wrap{
-        @apply(--layout-horizontal);
-        @apply(--layout-no-wrap);
+      label {
+        @apply --paper-font-caption;
+        color: #737373;
+        position: absolute;
+        top: 10px;
       }
 
-      [hidden]{
+      label[focused] {
+        color: var(--paper-time-input-label-focus-color, var(--primary-color));
+      }
+
+      label[error] {
+        color: var(--paper-time-input-label-invalid-color, var(--error-color));
+      }
+
+      .time-input-wrap {
+        @apply --layout-horizontal;
+        @apply --layout-no-wrap;
+        position: absolute;
+        top: 20px;
+      }
+
+      [hidden] {
         display: none !important;
       }
     </style>
 
-    <label hidden$="[[hideLabel]]">[[label]]</label>
+    <label hidden$="[[hideLabel]]" focused$="[[focused]]" error$="[[invalid]]">[[label]]</label>
     <div class="time-input-wrap">
 
       <!-- Hour Input -->
-      <paper-input
-        id="hour"
-        type="number"
-        value="{{hour}}"
-        on-change="_shouldFormatHour"
-        required
-        auto-validate="[[autoValidate]]"
-        prevent-invalid-input
-        maxlength="2"
-        max="[[_computeHourMax(format)]]"
-        min="0"
-        no-label-float
-        disabled="[[disabled]]">
+      <paper-input id="hour" focused="{{hourFocused}}" invalid="{{hourInvalid}}" type="number" value="{{hour}}" on-change="_shouldFormatHour"
+        required auto-validate="[[autoValidate]]" prevent-invalid-input error-message="Invalid hour" maxlength="2" max="[[_computeHourMax(format)]]"
+        min="0" no-label-float disabled="[[disabled]]">
         <span suffix>:</span>
       </paper-input>
 
       <!-- Min Input -->
-      <paper-input
-        id="min"
-        type="number"
-        value="{{min}}"
-        on-change="_formatMin"
-        required
-        auto-validate="[[autoValidate]]"
-        prevent-invalid-input
-        maxlength="2"
-        max="59"
-        min="0"
-        no-label-float
-        disabled="[[disabled]]">
+      <paper-input focused="{{minFocused}}" invalid="{{minInvalid}}" id="min" type="number" value="{{min}}" on-change="_formatMin"
+        required auto-validate="[[autoValidate]]" error-message="Invalid minute" prevent-invalid-input maxlength="2" max="59"
+        min="0" no-label-float disabled="[[disabled]]">
       </paper-input>
 
       <!-- Dropdown Menu -->
-      <paper-dropdown-menu hidden$="[[_equal(format, '24')]]" no-label-float disabled="[[disabled]]">
+      <paper-dropdown-menu focused="{{dropdownFocused}}" hidden$="[[_equal(format, '24')]]" no-label-float disabled="[[disabled]]">
         <paper-listbox attr-for-selected="name" selected="{{amPm}}" class="dropdown-content">
           <paper-item name="AM">AM</paper-item>
           <paper-item name="PM">PM</paper-item>
@@ -143,7 +148,6 @@ Custom property | Description | Default
       </paper-dropdown-menu>
 
     </div>
-
   </template>
 
   <script>
@@ -216,13 +220,45 @@ Custom property | Description | Default
           readOnly: true,
           computed: '_computeTime(min, hour, amPm)'
         },
+        dropdownFocused: {
+          type: Boolean,
+          value: false
+        },
+        minFocused: {
+          type: Boolean,
+          value: false
+        },
+        hourFocused: {
+          type: Boolean,
+          value: false
+        },
+        minInvalid: {
+          type: Boolean,
+          value: false
+        },
+        hourInvalid: {
+          type: Boolean,
+          value: false
+        },
+        focused: {
+          type: Boolean,
+          notify: true,
+          readOnly: true,
+          computed: '_computeFocused(dropdownFocused, minFocused, hourFocused)'
+        },
+        invalid: {
+          type: Boolean,
+          notify: true,
+          readOnly: true,
+          computed: '_computeInvalid(minInvalid, hourInvalid)'
+        }
       },
       /**
        * Validate the inputs
        * @return {boolean}
        */
-      validate: function(){
-        if(this.$.hour.validate() & this.$.min.validate()){
+      validate: function () {
+        if (this.$.hour.validate() & this.$.min.validate()) {
           return true;
         }
       },
@@ -230,7 +266,7 @@ Custom property | Description | Default
       /**
        * Create time string
        */
-      _computeTime: function(min, hour, amPm){
+      _computeTime: function (min, hour, amPm) {
         // No ampm on 24 hr time
         if (this.format == 24) {
           amPm = "";
@@ -242,33 +278,39 @@ Custom property | Description | Default
       /**
        * Format min
        */
-      _formatMin: function(){
-        if(this.min.toString().length === 1){
+      _formatMin: function () {
+        if (this.min.toString().length === 1) {
           this.min = (this.min < 10) ? ("0" + this.min) : this.min;
         }
       },
       /**
        * Hour needs a leading zero in 24hr format
        */
-      _shouldFormatHour: function(){
-        if(this.format == "24" && this.hour.toString().length === 1){
+      _shouldFormatHour: function () {
+        if (this.format == "24" && this.hour.toString().length === 1) {
           this.hour = (this.hour < 10) ? ("0" + this.hour) : this.hour;
         }
       },
       /**
        * 24 hour format has a max hr of 23
        */
-      _computeHourMax: function(format){
+      _computeHourMax: function (format) {
         if (format == 12) {
           return format
-        }else {
+        } else {
           return 23
         }
       },
-      _equal: function(n1, n2){
+      _equal: function (n1, n2) {
         if (n1 == n2) {
           return true
         }
+      },
+      _computeFocused: function (dropdownFocused, minFocused, hourFocused) {
+        return dropdownFocused || minFocused || hourFocused;
+      },
+      _computeInvalid: function (minInvalid, hourInvalid) { 
+        return minInvalid || hourInvalid;
       }
     });
   </script>
