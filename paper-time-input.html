@@ -116,8 +116,8 @@ Custom property | Description | Default
         @apply --layout-no-wrap;
         position: absolute;
         top: 20px;
-		right:0;
-		left:0;
+        right: 0;
+        left: 0;
       }
 
       [hidden] {
@@ -168,7 +168,7 @@ Custom property | Description | Default
          */
         autoValidate: {
           type: Boolean,
-          value: true
+          value: false
         },
         /**
          * hides the label
@@ -211,7 +211,7 @@ Custom property | Description | Default
         amPm: {
           type: String,
           notify: true,
-          value: 'AM'
+          value: ''
         },
         /**
          * Formatted time string
@@ -311,7 +311,7 @@ Custom property | Description | Default
       _computeFocused: function (dropdownFocused, minFocused, hourFocused) {
         return dropdownFocused || minFocused || hourFocused;
       },
-      _computeInvalid: function (minInvalid, hourInvalid) { 
+      _computeInvalid: function (minInvalid, hourInvalid) {
         return minInvalid || hourInvalid;
       }
     });
